@@ -73,7 +73,7 @@ int ossl_set_tls_provider_parameters(OSSL_RECORD_LAYER *rl,
     if ((EVP_CIPHER_get_flags(ciph) & EVP_CIPH_FLAG_AEAD_CIPHER) == 0
             && !rl->use_etm)
         imacsize = EVP_MD_get_size(md);
-    if (imacsize >= 0)
+    if (imacsize > 0)
         macsize = (size_t)imacsize;
 
     *pprm++ = OSSL_PARAM_construct_int(OSSL_CIPHER_PARAM_TLS_VERSION,
@@ -744,7 +744,7 @@ int tls_get_more_records(OSSL_RECORD_LAYER *rl)
          * CCS messages must be exactly 1 byte long, containing the value 0x01
          */
         if (thisrr->length != 1 || thisrr->data[0] != 0x01) {
-            RLAYERfatal(rl, SSL_AD_ILLEGAL_PARAMETER,
+            RLAYERfatal(rl, SSL_AD_UNEXPECTED_MESSAGE,
                         SSL_R_INVALID_CCS_MESSAGE);
             return OSSL_RECORD_RETURN_FATAL;
         }
@@ -773,7 +773,7 @@ int tls_get_more_records(OSSL_RECORD_LAYER *rl)
 
         if (tmpmd != NULL) {
             imac_size = EVP_MD_get_size(tmpmd);
-            if (!ossl_assert(imac_size >= 0 && imac_size <= EVP_MAX_MD_SIZE)) {
+            if (!ossl_assert(imac_size > 0 && imac_size <= EVP_MAX_MD_SIZE)) {
                 RLAYERfatal(rl, SSL_AD_INTERNAL_ERROR, ERR_R_EVP_LIB);
                 return OSSL_RECORD_RETURN_FATAL;
             }
